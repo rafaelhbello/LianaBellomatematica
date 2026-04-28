@@ -369,23 +369,23 @@
     </div>
     <div id="questoesContainer"></div>
 
-    <div class="btn-row">
-      <button class="btn-sec btn-gabarito" onclick="toggleGabarito()">
-        🔑 Mostrar gabarito
-      </button>
-      <button class="btn-sec btn-copiar" onclick="copiarQuestoes()">
-        📋 Copiar questões
-      </button>
-      <button class="btn-sec btn-nova" onclick="novaLista()">
-        🔄 Gerar nova lista
-      </button>
-    </div>
+  <div class="btn-row">
+  <button class="btn-sec btn-gabarito" onclick="toggleGabarito()">
+    🔑 Mostrar gabarito
+  </button>
 
-    <div id="gabaritoBox">
-      <h3>🔑 Gabarito</h3>
-      <div id="gabaritoConteudo"></div>
-    </div>
-  </div>
+  <button class="btn-sec" onclick="toggleResolucao()">
+    📘 Mostrar resolução
+  </button>
+
+  <button class="btn-sec btn-copiar" onclick="copiarQuestoes()">
+    📋 Copiar questões
+  </button>
+
+  <button class="btn-sec btn-nova" onclick="novaLista()">
+    🔄 Gerar nova lista
+  </button>
+</div>
 
   <footer>GeraMat • Uso livre para educação pública</footer>
 </main>
@@ -484,7 +484,7 @@ function gerarFuncao1(dif) {
   }
 
   const { texts, newCorrect } = shuffle(alts, correctIdx);
-  return { enunciado, alternativas: texts, gabarito: newCorrect };
+  return { enunciado, alternativas: texts, gabarito: newCorrect, resolucao };
 }
 
 /* ---------- Função do 2º grau ---------- */
