@@ -1,941 +1,102 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>GeraMat — Gerador de Questões de Matemática</title>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <style>
-    /* ========== RESET & BASE ========== */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:         #f5f2eb;
-      --card:       #fffdf7;
-      --ink:        #1a1a18;
-      --ink-soft:   #4a4840;
-      --accent:     #2d6a4f;
-      --accent-lt:  #52b788;
-      --accent-bg:  #d8f3dc;
-      --warn:       #c17b2f;
-      --warn-bg:    #fef3e2;
-      --border:     #ddd9ce;
-      --shadow:     0 2px 16px rgba(0,0,0,.08);
-      --radius:     12px;
-      --radius-sm:  8px;
-    }
-
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--ink);
-      min-height: 100vh;
-      padding: 0 0 60px;
-    }
-
-    /* ========== HEADER ========== */
-    header {
-      background: var(--accent);
-      color: #fff;
-      padding: 28px 24px 24px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-    header::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: repeating-linear-gradient(
-        -45deg,
-        transparent,
-        transparent 18px,
-        rgba(255,255,255,.04) 18px,
-        rgba(255,255,255,.04) 36px
-      );
-    }
-    header h1 {
-      font-family: 'Fraunces', serif;
-      font-size: clamp(1.8rem, 5vw, 2.6rem);
-      font-weight: 700;
-      letter-spacing: -.5px;
-      position: relative;
-    }
-    header p {
-      font-size: .95rem;
-      opacity: .85;
-      margin-top: 6px;
-      position: relative;
-    }
-
-    /* ========== LAYOUT ========== */
-    main {
-      max-width: 820px;
-      margin: 0 auto;
-      padding: 32px 16px 0;
-    }
-
-    /* ========== CARD ========== */
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 28px 28px 24px;
-      margin-bottom: 24px;
-    }
-
-    /* ========== FORM ========== */
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-    @media(max-width:560px){ .form-grid { grid-template-columns: 1fr; } }
-
-    .field { display: flex; flex-direction: column; gap: 6px; }
-    .field.full { grid-column: 1/-1; }
-
-    label {
-      font-size: .82rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      color: var(--ink-soft);
-    }
-
-    select, input[type="number"], input[type="text"] {
-      font-family: 'DM Sans', sans-serif;
-      font-size: .97rem;
-      padding: 10px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: var(--bg);
-      color: var(--ink);
-      transition: border-color .2s, box-shadow .2s;
-      width: 100%;
-      appearance: none;
-      -webkit-appearance: none;
-    }
-    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a4840' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 38px; }
-    select:focus, input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45,106,79,.15); }
-
-    /* campo aberto "Outros" */
-    #outroTema { display: none; margin-top: 8px; }
-
-    /* ========== BOTÃO PRINCIPAL ========== */
-    .btn-primary {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      padding: 14px 20px;
-      background: var(--accent);
-      color: #fff;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 1rem;
-      font-weight: 600;
-      border: none;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: background .2s, transform .1s;
-      margin-top: 8px;
-    }
-    .btn-primary:hover { background: #235c41; }
-    .btn-primary:active { transform: scale(.98); }
-
-    /* ========== BOTÕES SECUNDÁRIOS ========== */
-    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
-
-    .btn-sec {
-      flex: 1;
-      min-width: 140px;
-      padding: 10px 16px;
-      border-radius: var(--radius-sm);
-      font-family: 'DM Sans', sans-serif;
-      font-size: .9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background .2s, transform .1s;
-      border: 1.5px solid;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-    .btn-sec:active { transform: scale(.97); }
-
-    .btn-gabarito {
-      background: var(--warn-bg);
-      color: var(--warn);
-      border-color: #e8c07a;
-    }
-    .btn-gabarito:hover { background: #fde8be; }
-
-    .btn-copiar {
-      background: var(--accent-bg);
-      color: var(--accent);
-      border-color: #a3d9b8;
-    }
-    .btn-copiar:hover { background: #b7e9c9; }
-
-    .btn-nova {
-      background: #fff;
-      color: var(--ink-soft);
-      border-color: var(--border);
-    }
-    .btn-nova:hover { background: var(--bg); }
-
-    /* ========== QUESTÕES ========== */
-    #resultSection { display: none; }
-
-    .result-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .result-header h2 {
-      font-family: 'Fraunces', serif;
-      font-size: 1.35rem;
-      font-weight: 600;
-    }
-    .badge {
-      background: var(--accent-bg);
-      color: var(--accent);
-      border-radius: 20px;
-      padding: 3px 12px;
-      font-size: .78rem;
-      font-weight: 600;
-    }
-
-    .questao {
-      border-left: 3px solid var(--accent-lt);
-      padding: 16px 18px;
-      margin-bottom: 16px;
-      background: var(--bg);
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-    }
-    .questao-num {
-      font-size: .78rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: var(--accent);
-      margin-bottom: 8px;
-    }
-    .questao-text {
-      font-size: .97rem;
-      line-height: 1.65;
-      white-space: pre-line;
-    }
-    .questao-alternativas {
-      margin-top: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .alt {
-      font-size: .93rem;
-      padding: 7px 12px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: #fff;
-      line-height: 1.4;
-    }
-
-    /* ========== GABARITO ========== */
-    #gabaritoBox {
-      display: none;
-      background: var(--warn-bg);
-      border: 1.5px solid #e8c07a;
-      border-radius: var(--radius-sm);
-      padding: 20px 22px;
-      margin-top: 8px;
-    }
-    #gabaritoBox h3 {
-      font-family: 'Fraunces', serif;
-      color: var(--warn);
-      font-size: 1.1rem;
-      margin-bottom: 12px;
-    }
-    .gab-linha {
-      font-size: .93rem;
-      padding: 4px 0;
-      border-bottom: 1px solid #f0d89a;
-      display: flex;
-      gap: 16px;
-    }
-    .gab-linha:last-child { border-bottom: none; }
-    .gab-q { color: var(--ink-soft); min-width: 90px; }
-    .gab-r { font-weight: 600; color: var(--ink); }
-
-    /* ========== TOAST ========== */
-    #toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(80px);
-      background: var(--ink);
-      color: #fff;
-      padding: 10px 22px;
-      border-radius: 30px;
-      font-size: .88rem;
-      font-weight: 500;
-      pointer-events: none;
-      transition: transform .3s ease;
-      z-index: 999;
-    }
-    #toast.show { transform: translateX(-50%) translateY(0); }
-
-    /* ========== LOADING ========== */
-    #loading { display: none; text-align: center; padding: 30px 0; color: var(--ink-soft); font-size: .97rem; }
-    .dots::after {
-      content: '';
-      animation: dots 1.2s infinite;
-    }
-    @keyframes dots {
-      0%  { content: '.'; }
-      33% { content: '..'; }
-      66% { content: '...'; }
-    }
-
-    footer {
-      text-align: center;
-      margin-top: 40px;
-      font-size: .8rem;
-      color: #b0ab9f;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>GeraMat</title>
+<style>
+body { font-family: Arial; padding:20px; }
+.questao { margin-bottom:20px; }
+.alt { margin-left:10px; }
+</style>
 </head>
 <body>
 
-<header>
-  <h1>📐 GeraMat</h1>
-  <p>Gerador de questões de matemática para o ensino médio</p>
-</header>
+<h1>GeraMat</h1>
 
-<main>
+<button onclick="gerarQuestoes()">Gerar Questões</button>
+<button onclick="toggleGabarito()">Mostrar Gabarito</button>
 
-  <!-- ===== FORMULÁRIO ===== -->
-  <div class="card">
-    <div class="form-grid">
-
-      <div class="field">
-        <label for="tema">Tema</label>
-        <select id="tema" onchange="toggleOutro()">
-          <option value="">Selecione um tema…</option>
-          <option value="funcao1">Função do 1º grau</option>
-          <option value="funcao2">Função do 2º grau</option>
-          <option value="equacoes">Equações</option>
-          <option value="inequacoes">Inequações</option>
-          <option value="geometria">Geometria</option>
-          <option value="trigonometria">Trigonometria</option>
-          <option value="probabilidade">Probabilidade</option>
-          <option value="outros">Outros (especificar)</option>
-        </select>
-        <input type="text" id="outroTema" placeholder="Ex: Progressão Aritmética…"/>
-      </div>
-
-      <div class="field">
-        <label for="dificuldade">Nível de dificuldade</label>
-        <select id="dificuldade">
-          <option value="facil">Fácil</option>
-          <option value="medio" selected>Médio</option>
-          <option value="dificil">Difícil</option>
-        </select>
-      </div>
-
-      <div class="field full">
-        <label for="quantidade">Quantidade de questões</label>
-        <input type="number" id="quantidade" min="1" max="20" value="5"/>
-      </div>
-
-    </div>
-    <button class="btn-primary" onclick="gerarQuestoes()">
-      ✨ Gerar questões
-    </button>
-  </div>
-
-  <!-- ===== LOADING ===== -->
-  <div id="loading">Gerando questões<span class="dots"></span></div>
-
-  <!-- ===== RESULTADO ===== -->
-  <div id="resultSection" class="card">
-    <div class="result-header">
-      <h2>Lista de questões</h2>
-      <span class="badge" id="badgeTema"></span>
-    </div>
-    <div id="questoesContainer"></div>
-
-    <div class="btn-row">
-      <button class="btn-sec btn-gabarito" onclick="toggleGabarito()">
-        🔑 Mostrar gabarito
-      </button>
-      <button class="btn-sec btn-copiar" onclick="copiarQuestoes()">
-        📋 Copiar questões
-      </button>
-      <button class="btn-sec btn-nova" onclick="novaLista()">
-        🔄 Gerar nova lista
-      </button>
-    </div>
-
-    <div id="gabaritoBox">
-      <h3>🔑 Gabarito</h3>
-      <div id="gabaritoConteudo"></div>
-    </div>
-  </div>
-
-  <footer>GeraMat • Uso livre para educação pública</footer>
-</main>
-
-<div id="toast"></div>
+<div id="questoes"></div>
+<div id="gabarito" style="display:none;"></div>
 
 <script>
-/* =====================================================================
-   GeraMat — Gerador de Questões de Matemática
-   Toda a lógica é local, sem dependências externas.
-   ===================================================================== */
 
-// ── Utilitários ──────────────────────────────────────────────────────
-const rnd  = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
-const pick = arr => arr[Math.floor(Math.random() * arr.length)];
-
-// Retorna a,b,c variáveis com sinal textual (ex: "+ 3x", "- 5")
-function fmt(n, varname = '') {
-  if (n === 0) return '';
-  const sign = n > 0 ? '+' : '−';
-  const abs  = Math.abs(n);
-  if (varname && abs === 1) return `${sign} ${varname}`;
-  return varname ? `${sign} ${abs}${varname}` : `${sign} ${abs}`;
-}
-
-function fmtFirst(n, varname = '') {
-  if (n === 0) return varname ? `0${varname}` : '0';
-  if (varname && Math.abs(n) === 1) return n < 0 ? `−${varname}` : varname;
-  return varname ? `${n < 0 ? '−' : ''}${Math.abs(n)}${varname}` : `${n}`;
-}
-
-// Embaralha alternativas preservando o índice da correta
-function shuffle(alts, correctIdx) {
-  const labeled = alts.map((t, i) => ({ t, correct: i === correctIdx }));
-  for (let i = labeled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [labeled[i], labeled[j]] = [labeled[j], labeled[i]];
-  }
-  const letters = ['a', 'b', 'c', 'd', 'e'];
-  const newCorrect = letters[labeled.findIndex(x => x.correct)];
-  const texts = labeled.map((x, i) => `${letters[i]}) ${x.t}`);
-  return { texts, newCorrect };
-}
-
-// ── Banco de contextos (estilo ENEM) ────────────────────────────────
-const contextos = {
-  comercial: ['Uma loja de roupas', 'Uma padaria do bairro', 'Um mercado municipal', 'Uma livraria universitária'],
-  transporte: ['Um taxi', 'Um ônibus interestadual', 'Uma viagem de carro'],
-  trabalho:   ['Um vendedor ambulante', 'Uma costureira autônoma', 'Um técnico de informática'],
-  escola:     ['Uma turma do ensino médio', 'A cantina escolar', 'Um projeto escolar'],
-};
-const ctxAll = Object.values(contextos).flat();
-
-// ── GERADORES POR TEMA ───────────────────────────────────────────────
-
-/* ---------- Função do 1º grau ---------- */
-function gerarFuncao1(dif) {
-  const a = dif === 'facil' ? rnd(1,5) : (dif === 'medio' ? rnd(2,9) : rnd(-10,10) || 3);
-  const b = dif === 'facil' ? rnd(0,10) : rnd(-15,15);
-  const ctx = pick(ctxAll);
-
-  const cobranca = dif === 'facil'
-    ? `calcule f(${rnd(1,5)})`
-    : dif === 'medio'
-      ? `encontre o valor de x tal que f(x) = ${a * rnd(1,6) + b}`
-      : `determine o zero da função e interprete seu significado prático`;
-
-  const enunciado =
-    `${ctx} pode ser representado por uma função afim f(x) = ${fmtFirst(a,'x')} ${fmt(b)}.\n` +
-    `Com base nessa situação, ${cobranca}.`;
-
-  // resposta
-  let resposta = '';
-  let alts = [];
-  let correctIdx = 0;
-
-  if (dif === 'facil') {
-    const xv = rnd(1,5);
-    const res = a * xv + b;
-    resposta = `f(${xv}) = ${res}`;
-    alts = [res, res+2, res-3, res+5].map(String);
-    correctIdx = 0;
-  } else if (dif === 'medio') {
-    const fx = a * rnd(1,6) + b;
-    const xv = (fx - b) / a;
-    resposta = `x = ${Number.isInteger(xv) ? xv : xv.toFixed(2)}`;
-    const xr = Number.isInteger(xv) ? xv : parseFloat(xv.toFixed(2));
-    alts = [xr, xr+1, xr-1, xr+2].map(v => v.toString());
-    correctIdx = 0;
-  } else {
-    const zero = (-b / a).toFixed(2);
-    resposta = `x = ${zero}`;
-    const z = parseFloat(zero);
-    alts = [zero, (z+1).toFixed(2), (z-1).toFixed(2), (z+2).toFixed(2)];
-    correctIdx = 0;
-  }
-
-  const { texts, newCorrect } = shuffle(alts, correctIdx);
-  return { enunciado, alternativas: texts, gabarito: newCorrect };
-}
-
-/* ---------- Função do 2º grau ---------- */
-function gerarFuncao2(dif) {
-  // gera raízes inteiras para facilitar
-  const x1 = rnd(-5, 5);
-  const x2 = rnd(-5, 5);
-  // a(x - x1)(x - x2) = ax² - a(x1+x2)x + a*x1*x2
-  const a  = dif === 'facil' ? 1 : (dif === 'medio' ? pick([1,-1,2,-2]) : rnd(-3,3) || 1);
-  const bv = -a * (x1 + x2);
-  const cv =  a * x1 * x2;
-
-  const temas = [
-    `A trajetória de uma bola lançada ao ar é modelada por h(t) = ${fmtFirst(a,'t²')} ${fmt(bv,'t')} ${fmt(cv)}, onde h é a altura em metros e t o tempo em segundos.`,
-    `O lucro mensal (em reais) de uma microempresa é dado por L(x) = ${fmtFirst(a,'x²')} ${fmt(bv,'x')} ${fmt(cv)}, sendo x a quantidade de produtos vendidos.`,
-    `Uma área retangular é expressa por A(x) = ${fmtFirst(a,'x²')} ${fmt(bv,'x')} ${fmt(cv)}.`,
-  ];
-
-  const pergunta = dif === 'facil'
-    ? 'Quais são as raízes (zeros) dessa função?'
-    : dif === 'medio'
-      ? 'Qual é o valor máximo ou mínimo da função e para qual valor de x ele ocorre?'
-      : 'Determine o conjunto solução de f(x) > 0.';
-
-  const enunciado = `${pick(temas)}\n${pergunta}`;
-
-  let resposta = '';
-  let alts = [];
-  let correctIdx = 0;
-
-  if (dif === 'facil') {
-    resposta = `x₁ = ${x1} e x₂ = ${x2}`;
-    alts = [
-      `x₁ = ${x1} e x₂ = ${x2}`,
-      `x₁ = ${x1+1} e x₂ = ${x2-1}`,
-      `x₁ = ${-x1} e x₂ = ${-x2}`,
-      `x₁ = ${x1-2} e x₂ = ${x2+2}`,
-    ];
-  } else if (dif === 'medio') {
-    const xv = -(bv / (2 * a));
-    const yv = a * xv * xv + bv * xv + cv;
-    const tipo = a > 0 ? 'mínimo' : 'máximo';
-    resposta = `Valor ${tipo}: ${yv.toFixed(1)} em x = ${xv.toFixed(1)}`;
-    alts = [
-      `Valor ${tipo}: ${yv.toFixed(1)} em x = ${xv.toFixed(1)}`,
-      `Valor ${tipo}: ${(yv+2).toFixed(1)} em x = ${(xv+1).toFixed(1)}`,
-      `Valor ${tipo}: ${(yv-3).toFixed(1)} em x = ${(xv-1).toFixed(1)}`,
-      `Valor ${tipo}: ${yv.toFixed(1)} em x = ${(xv+2).toFixed(1)}`,
-    ];
-  } else {
-    const mn = Math.min(x1,x2), mx = Math.max(x1,x2);
-    resposta = a > 0 ? `x < ${mn} ou x > ${mx}` : `${mn} < x < ${mx}`;
-    alts = [
-      a > 0 ? `x < ${mn} ou x > ${mx}` : `${mn} < x < ${mx}`,
-      a > 0 ? `${mn} < x < ${mx}` : `x < ${mn} ou x > ${mx}`,
-      `x < ${mn-1} ou x > ${mx+1}`,
-      `x ≥ ${mn} e x ≤ ${mx}`,
-    ];
-  }
-
-  const { texts, newCorrect } = shuffle(alts, 0);
-  return { enunciado, alternativas: texts, gabarito: newCorrect };
-}
-
-/* ---------- Equações ---------- */
-function gerarEquacao(dif) {
-  const contextos2 = [
-    'Em uma competição esportiva escolar',
-    'Durante uma promoção em uma loja',
-    'Para dividir igualmente os materiais entre alunos',
-    'Ao calcular o troco de uma compra',
-  ];
-
-  if (dif === 'facil') {
-    // ax + b = c
-    const a = rnd(2, 9), b = rnd(1, 15), x = rnd(1, 10);
-    const c = a * x + b;
-    const enunciado = `${pick(contextos2)}, a situação pode ser modelada pela equação:\n${fmtFirst(a,'x')} ${fmt(b)} = ${c}\nEncontre o valor de x.`;
-    const alts = [x, x+2, x-1, x+3].map(String);
-    const { texts, newCorrect } = shuffle(alts, 0);
-    return { enunciado, alternativas: texts, gabarito: newCorrect };
-  }
-
-  if (dif === 'medio') {
-    // sistema 2x2 simples
-    const x = rnd(1,8), y = rnd(1,8);
-    const a1=rnd(1,4), b1=rnd(1,3), a2=rnd(1,3), b2=rnd(1,4);
-    const c1 = a1*x + b1*y, c2 = a2*x + b2*y;
-    const enunciado =
-      `Resolva o sistema de equações:\n` +
-      `  ${fmtFirst(a1,'x')} ${fmt(b1,'y')} = ${c1}\n` +
-      `  ${fmtFirst(a2,'x')} ${fmt(b2,'y')} = ${c2}`;
-    const res = `x = ${x} e y = ${y}`;
-    const alts = [res, `x = ${x+1} e y = ${y}`, `x = ${x} e y = ${y+2}`, `x = ${x-1} e y = ${y+1}`];
-    const { texts, newCorrect } = shuffle(alts, 0);
-    return { enunciado, alternativas: texts, gabarito: newCorrect };
-  }
-
-  // difícil: equação do 2º grau por Bhaskara
-  const a = rnd(1,3), r1 = rnd(-6,6), r2 = rnd(-6,6);
-  const bv = -a*(r1+r2), cv = a*r1*r2;
-  const delta = bv*bv - 4*a*cv;
-  const enunciado =
-    `Determine as raízes da equação do 2º grau:\n` +
-    `${fmtFirst(a,'x²')} ${fmt(bv,'x')} ${fmt(cv)} = 0\n` +
-    `(Use a Fórmula de Bhaskara: x = (−b ± √Δ) / 2a)`;
-  const res = `x₁ = ${r1} e x₂ = ${r2}`;
-  const alts = [res, `x₁ = ${r1+1} e x₂ = ${r2}`, `x₁ = ${r1} e x₂ = ${r2+1}`, `x₁ = ${r1-1} e x₂ = ${r2-1}`];
-  const { texts, newCorrect } = shuffle(alts, 0);
-  return { enunciado, alternativas: texts, gabarito: newCorrect };
-}
-
-/* ---------- Inequações ---------- */
-function gerarInequacao(dif) {
-  const ctx = pick(ctxAll);
-  const a = rnd(1, 8), b = rnd(1, 20), c = rnd(b+1, b+40);
-  const sinal = pick(['>', '<', '≥', '≤']);
-  const rhs = rnd(5, 50);
-
-  if (dif === 'facil') {
-    const xv = (rhs - b);
-    const xr = xv / a;
-    const enunciado = `${ctx} precisa satisfazer a condição:\n${fmtFirst(a,'x')} ${fmt(b)} ${sinal} ${rhs}\nQual é o conjunto solução?`;
-    const op = sinal.includes('>') ? (sinal === '>' ? `x > ${xr.toFixed(1)}` : `x ≥ ${xr.toFixed(1)}`) : (sinal === '<' ? `x < ${xr.toFixed(1)}` : `x ≤ ${xr.toFixed(1)}`);
-    const alts = [op,
-      `x ${sinal} ${(xr+1).toFixed(1)}`,
-      `x ${sinal} ${(xr-1).toFixed(1)}`,
-      `x ${sinal} ${(xr+2).toFixed(1)}`
-    ];
-    const { texts, newCorrect } = shuffle(alts, 0);
-    return { enunciado, alternativas: texts, gabarito: newCorrect };
-  }
-
-  if (dif === 'medio') {
-    const x1=rnd(-5,0), x2=rnd(1,6);
-    const enunciado = `Resolva a inequação do 2º grau:\nx² ${fmt(-(x1+x2),'x')} ${fmt(x1*x2)} ${sinal.includes('>') ? '>' : '<'} 0`;
-    const mn=Math.min(x1,x2), mx=Math.max(x1,x2);
-    const res = sinal.includes('>') ? `x < ${mn} ou x > ${mx}` : `${mn} < x < ${mx}`;
-    const alts = [res, `x < ${mn-1} ou x > ${mx+1}`, `${mn} ≤ x ≤ ${mx}`, `x > ${mx} ou x < ${mn-2}`];
-    const { texts, newCorrect } = shuffle(alts, 0);
-    return { enunciado, alternativas: texts, gabarito: newCorrect };
-  }
-
-  const enunciado = `Resolva o sistema de inequações e indique o conjunto solução:\n  3x − 4 > 2\n  2x + 1 ≤ 11`;
-  const alts = ['2 < x ≤ 5', '1 < x ≤ 5', '2 ≤ x < 5', 'x > 2'];
-  const { texts, newCorrect } = shuffle(alts, 0);
-  return { enunciado, alternativas: texts, gabarito: newCorrect };
-}
-
-/* ---------- Geometria ---------- */
-function gerarGeometria(dif) {
-  const figuras = ['quadrado', 'retângulo', 'triângulo', 'círculo', 'trapézio'];
-  const fig = pick(figuras);
-  const l1 = rnd(3, 15), l2 = rnd(3, 15);
-
-  let enunciado = '', resposta = '', alts = [];
-
-  if (fig === 'quadrado') {
-    const area = l1 * l1;
-    const perim = 4 * l1;
-    enunciado = `Uma praça tem o formato de um quadrado com lado de ${l1} m. Calcule sua área e seu perímetro.`;
-    resposta = `Área = ${area} m² e Perímetro = ${perim} m`;
-    alts = [resposta, `Área = ${area+4} m² e Perímetro = ${perim+4} m`, `Área = ${area} m² e Perímetro = ${perim-4} m`, `Área = ${l1*2} m² e Perímetro = ${perim} m`];
-  } else if (fig === 'retângulo') {
-    const area = l1 * l2;
-    const perim = 2 * (l1 + l2);
-    enunciado = `Um jardim retangular tem comprimento de ${l1} m e largura de ${l2} m. Calcule sua área e perímetro.`;
-    resposta = `Área = ${area} m² e Perímetro = ${perim} m`;
-    alts = [resposta, `Área = ${area+l2} m² e Perímetro = ${perim} m`, `Área = ${area} m² e Perímetro = ${perim+4} m`, `Área = ${2*l1+l2} m² e Perímetro = ${perim-2} m`];
-  } else if (fig === 'triângulo') {
-    const area = (l1 * l2) / 2;
-    enunciado = `Um terreno triangular tem base de ${l1} m e altura de ${l2} m. Qual é sua área?`;
-    resposta = `${area} m²`;
-    alts = [`${area} m²`, `${area+5} m²`, `${l1*l2} m²`, `${area-2} m²`];
-  } else if (fig === 'círculo') {
-    const r = l1;
-    const area = (Math.PI * r * r).toFixed(2);
-    const circunf = (2 * Math.PI * r).toFixed(2);
-    enunciado = `Uma fonte circular tem raio de ${r} m. Calcule sua área e circunferência. (Use π ≈ 3,14)`;
-    const areaAprox = (3.14 * r * r).toFixed(2);
-    const circAprox = (2 * 3.14 * r).toFixed(2);
-    resposta = `Área ≈ ${areaAprox} m² e C ≈ ${circAprox} m`;
-    alts = [resposta, `Área ≈ ${(3.14*r*r+10).toFixed(2)} m² e C ≈ ${circAprox} m`, `Área ≈ ${areaAprox} m² e C ≈ ${(2*3.14*r+5).toFixed(2)} m`, `Área ≈ ${(3.14*r).toFixed(2)} m² e C ≈ ${circAprox} m`];
-  } else {
-    const h = rnd(3, 10), b1 = l1, b2 = l2;
-    const area = ((b1 + b2) * h) / 2;
-    enunciado = `Um campo tem formato de trapézio com bases de ${b1} m e ${b2} m, e altura de ${h} m. Calcule a área.`;
-    resposta = `${area} m²`;
-    alts = [`${area} m²`, `${area+h} m²`, `${(b1+b2)*h} m²`, `${area-h} m²`];
-  }
-
-  if (dif === 'dificil') {
-    enunciado += '\n(Após calcular, expresse o resultado em cm² considerando que 1 m = 100 cm.)';
-  }
-
-  const { texts, newCorrect } = shuffle(alts, 0);
-  return { enunciado, alternativas: texts, gabarito: newCorrect };
-}
-
-/* ---------- Trigonometria ---------- */
-function gerarTrigonometria(dif) {
-  const angulos = [30, 45, 60];
-  const angulo = pick(angulos);
-  const tabelaSen = { 30: '1/2', 45: '√2/2', 60: '√3/2' };
-  const tabelaCos = { 30: '√3/2', 45: '√2/2', 60: '1/2' };
-  const tabelaTan = { 30: '√3/3', 45: '1', 60: '√3' };
-
-  if (dif === 'facil') {
-    const func = pick(['seno', 'cosseno', 'tangente']);
-    const val = func === 'seno' ? tabelaSen[angulo] : func === 'cosseno' ? tabelaCos[angulo] : tabelaTan[angulo];
-    const enunciado = `Qual é o valor de ${func}(${angulo}°)?`;
-    const alts = [val,
-      func === 'seno' ? tabelaCos[angulo] : tabelaSen[angulo],
-      tabelaTan[angulo],
-      '√2/3'
-    ];
-    const { texts, newCorrect } = shuffle(alts, 0);
-    return { enunciado, alternativas: texts, gabarito: newCorrect };
-  }
-
-  if (dif === 'medio') {
-    const hip = rnd(4, 12) * 2;
-    const adj = hip * (angulo === 30 ? Math.sqrt(3)/2 : angulo === 45 ? Math.sqrt(2)/2 : 0.5);
-    const enunciado =
-      `Em um triângulo retângulo, a hipotenusa mede ${hip} cm e um dos ângulos agudos é de ${angulo}°.\n` +
-      `Calcule o cateto adjacente a esse ângulo. (Tabela: cos(${angulo}°) = ${tabelaCos[angulo]})`;
-    const res = (adj).toFixed(2);
-    const alts = [`${res} cm`, `${(parseFloat(res)+2).toFixed(2)} cm`, `${(parseFloat(res)-1).toFixed(2)} cm`, `${(hip/2).toFixed(2)} cm`];
-    const { texts, newCorrect } = shuffle(alts, 0);
-    return { enunciado, alternativas: texts, gabarito: newCorrect };
-  }
-
-  const enunciado =
-    `Uma rampa de acesso tem inclinação de 30° com o solo. Se a extensão da rampa é de 6 m,\n` +
-    `calcule a altura vertical que ela atinge.\n` +
-    `(sen(30°) = 1/2 | cos(30°) = √3/2 | tan(30°) = √3/3)`;
-  const alts = ['3 m', '3√3 m', '6√3 m', '2 m'];
-  const { texts, newCorrect } = shuffle(alts, 0);
-  return { enunciado, alternativas: texts, gabarito: newCorrect };
-}
-
-/* ---------- Probabilidade ---------- */
-function gerarProbabilidade(dif) {
-  if (dif === 'facil') {
-    const n = rnd(5, 12);
-    const k = rnd(1, Math.floor(n/2));
-    const ctx = pick([
-      `Uma sacola contém ${n} bolas numeradas de 1 a ${n}.`,
-      `Uma urna tem ${n} fichas, numeradas de 1 a ${n}.`,
-    ]);
-    const enunciado = `${ctx}\nRetira-se uma ao acaso. Qual a probabilidade de sair um número menor ou igual a ${k}?`;
-    const num = k, den = n;
-    const mdc = (a,b)=> b===0?a:mdc(b,a%b);
-    const d = mdc(num,den);
-    const frac = `${num/d}/${den/d}`;
-    const alts = [frac, `${(k+1)}/${n}`, `${(k-1)||1}/${n}`, `${k}/${n+1}`];
-    const { texts, newCorrect } = shuffle(alts, 0);
-    return { enunciado, alternativas: texts, gabarito: newCorrect };
-  }
-
-  if (dif === 'medio') {
-    const total = rnd(8, 15);
-    const azuis = rnd(2, total-3);
-    const vermelhas = total - azuis;
-    const enunciado =
-      `Uma caixa contém ${total} bolinhas: ${azuis} azuis e ${vermelhas} vermelhas.\n` +
-      `Retirando duas bolinhas sem reposição, qual a probabilidade de ambas serem azuis?`;
-    const num = azuis * (azuis - 1);
-    const den = total * (total - 1);
-    const mdc = (a,b)=> b===0?a:mdc(b,a%b);
-    const d = mdc(num,den);
-    const frac = `${num/d}/${den/d}`;
-    const alts = [frac, `${azuis}/${total}`, `${azuis*(azuis-1)+2}/${den/d}`, `${(azuis-1)*(azuis)}/${(total*(total+1))}`];
-    const { texts, newCorrect } = shuffle(alts, 0);
-    return { enunciado, alternativas: texts, gabarito: newCorrect };
-  }
-
-  const enunciado =
-    `Em uma turma de 30 alunos, 18 praticam esporte e 12 estudam música. Sabe-se que 6 praticam ambas.\n` +
-    `Escolhendo um aluno ao acaso, qual a probabilidade de ele praticar pelo menos uma das atividades?`;
-  const alts = ['4/5', '3/5', '2/3', '5/6'];
-  const { texts, newCorrect } = shuffle(alts, 0);
-  return { enunciado, alternativas: texts, gabarito: newCorrect };
-}
-
-/* ---------- Outros (genérico) ---------- */
-function gerarOutros(dif, tema) {
-  const a = rnd(2, 12), b = rnd(1, 20), c = rnd(5, 40);
-  const enunciado =
-    `(Tema: ${tema || 'Matemática Geral'})\n` +
-    `Resolva o seguinte problema de ${dif === 'facil' ? 'nível básico' : dif === 'medio' ? 'nível intermediário' : 'nível avançado'}:\n` +
-    `Se a = ${a}, b = ${b} e c = ${c}, calcule o valor de: (a + b) × c − b².`;
-  const res = (a + b) * c - b * b;
-  const alts = [res, res+5, res-3, res+10].map(String);
-  const { texts, newCorrect } = shuffle(alts, 0);
-  return { enunciado, alternativas: texts, gabarito: newCorrect };
-}
-
-// ── Despachante principal ─────────────────────────────────────────────
-function gerarQuestao(tema, dif, outroTema) {
-  switch(tema) {
-    case 'funcao1':      return gerarFuncao1(dif);
-    case 'funcao2':      return gerarFuncao2(dif);
-    case 'equacoes':     return gerarEquacao(dif);
-    case 'inequacoes':   return gerarInequacao(dif);
-    case 'geometria':    return gerarGeometria(dif);
-    case 'trigonometria':return gerarTrigonometria(dif);
-    case 'probabilidade':return gerarProbabilidade(dif);
-    default:             return gerarOutros(dif, outroTema);
-  }
-}
-
-// ── Estado global ────────────────────────────────────────────────────
-let questoesGeradas = [];  // { enunciado, alternativas[], gabarito }
+let questoesGeradas = [];
 let gabaritoVisivel = false;
 
-// ── Rótulos de exibição ───────────────────────────────────────────────
-const labelsTema = {
-  funcao1: 'Função do 1º Grau', funcao2: 'Função do 2º Grau',
-  equacoes: 'Equações', inequacoes: 'Inequações',
-  geometria: 'Geometria', trigonometria: 'Trigonometria',
-  probabilidade: 'Probabilidade', outros: 'Outros',
-};
-const labelsDif = { facil: 'Fácil', medio: 'Médio', dificil: 'Difícil' };
-
-// ── Mostrar/ocultar campo "Outro tema" ────────────────────────────────
-function toggleOutro() {
-  const sel = document.getElementById('tema').value;
-  document.getElementById('outroTema').style.display = sel === 'outros' ? 'block' : 'none';
-}
-
-// ── Gerar questões ────────────────────────────────────────────────────
 function gerarQuestoes() {
-  const tema = document.getElementById('tema').value;
-  const dif  = document.getElementById('dificuldade').value;
-  const qtd  = parseInt(document.getElementById('quantidade').value) || 5;
-  const outroTema = document.getElementById('outroTema').value.trim();
+  questoesGeradas = [];
 
-  if (!tema) { showToast('⚠️ Selecione um tema antes de continuar.'); return; }
+  for (let i = 0; i < 5; i++) {
+    questoesGeradas.push(gerarEquacao());
+  }
 
-  // loading
-  document.getElementById('resultSection').style.display = 'none';
-  document.getElementById('loading').style.display = 'block';
-  gabaritoVisivel = false;
-
-  setTimeout(() => {
-    questoesGeradas = [];
-    for (let i = 0; i < Math.min(qtd, 20); i++) {
-      questoesGeradas.push(gerarQuestao(tema, dif, outroTema));
-    }
-    renderQuestoes(tema, outroTema);
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('resultSection').style.display = 'block';
-    document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
-  }, 600);
+  render();
 }
 
-// ── Renderizar questões ───────────────────────────────────────────────
-function renderQuestoes(tema, outroTema) {
-  const container = document.getElementById('questoesContainer');
-  const badge = document.getElementById('badgeTema');
-  const dif   = document.getElementById('dificuldade').value;
+function gerarEquacao() {
+  const a = Math.floor(Math.random()*5)+1;
+  const x = Math.floor(Math.random()*10)+1;
+  const b = Math.floor(Math.random()*10);
+  const c = a*x + b;
 
-  const labelT = tema === 'outros' && outroTema ? outroTema : (labelsTema[tema] || 'Geral');
-  badge.textContent = `${labelT} · ${labelsDif[dif]}`;
+  const enunciado = `${a}x + ${b} = ${c}`;
 
-  container.innerHTML = questoesGeradas.map((q, i) => `
-    <div class="questao">
-      <div class="questao-num">Questão ${i + 1}</div>
-      <div class="questao-text">${q.enunciado}</div>
-      <div class="questao-alternativas">
-        ${q.alternativas.map(alt => `<div class="alt">${alt}</div>`).join('')}
+  const resolucao = `
+${a}x + ${b} = ${c}
+${a}x = ${c} - ${b}
+${a}x = ${c - b}
+x = ${(c - b)/a}
+`;
+
+  const alternativas = [
+    x,
+    x+1,
+    x-1,
+    x+2
+  ];
+
+  return {
+    enunciado,
+    alternativas,
+    gabarito: "A",
+    resolucao
+  };
+}
+
+function render() {
+  const qDiv = document.getElementById("questoes");
+  qDiv.innerHTML = "";
+
+  questoesGeradas.forEach((q, i) => {
+    qDiv.innerHTML += `
+      <div class="questao">
+        <strong>Questão ${i+1}</strong><br>
+        ${q.enunciado}<br>
+        ${q.alternativas.map((a,i)=> `<div class="alt">${String.fromCharCode(65+i)}) ${a}</div>`).join("")}
       </div>
+    `;
+  });
+
+  const gDiv = document.getElementById("gabarito");
+
+  gDiv.innerHTML = questoesGeradas.map((q,i)=>`
+    <div style="margin-bottom:15px;">
+      <strong>Questão ${i+1}</strong><br>
+      Resposta: ${q.gabarito}<br>
+      <strong>Resolução:</strong><br>
+      ${q.resolucao}
     </div>
-  `).join('');
-
-  // Gabarito
-  const gabDiv = document.getElementById('gabaritoConteudo');
-  gabDiv.innerHTML = questoesGeradas.map((q, i) =>
-    `<div class="gab-linha">
-       <span class="gab-q">Questão ${i+1}</span>
-       <span class="gab-r">Resposta: ${q.gabarito.toUpperCase()}</span>
-     </div>`
-  ).join('');
-
-  document.getElementById('gabaritoBox').style.display = 'none';
-  document.querySelector('.btn-gabarito').textContent = '🔑 Mostrar gabarito';
-  gabaritoVisivel = false;
+  `).join("");
 }
 
-// ── Mostrar/ocultar gabarito ─────────────────────────────────────────
 function toggleGabarito() {
-  const box = document.getElementById('gabaritoBox');
-  const btn = document.querySelector('.btn-gabarito');
+  const g = document.getElementById("gabarito");
   gabaritoVisivel = !gabaritoVisivel;
-  box.style.display = gabaritoVisivel ? 'block' : 'none';
-  btn.textContent = gabaritoVisivel ? '🙈 Ocultar gabarito' : '🔑 Mostrar gabarito';
-  if (gabaritoVisivel) box.scrollIntoView({ behavior: 'smooth' });
+  g.style.display = gabaritoVisivel ? "block" : "none";
 }
 
-// ── Copiar questões ──────────────────────────────────────────────────
-function copiarQuestoes() {
-  const dif    = document.getElementById('dificuldade').value;
-  const tema   = document.getElementById('tema').value;
-  const outroTema = document.getElementById('outroTema').value.trim();
-  const labelT = tema === 'outros' && outroTema ? outroTema : (labelsTema[tema] || 'Geral');
-
-  const texto =
-    `LISTA DE QUESTÕES — ${labelT.toUpperCase()} (${labelsDif[dif]})\n` +
-    '='.repeat(50) + '\n\n' +
-    questoesGeradas.map((q, i) =>
-      `Questão ${i+1}\n${q.enunciado}\n\n` +
-      q.alternativas.join('\n') + '\n'
-    ).join('\n' + '-'.repeat(40) + '\n\n');
-
-  navigator.clipboard.writeText(texto)
-    .then(() => showToast('✅ Questões copiadas para a área de transferência!'))
-    .catch(() => showToast('❌ Não foi possível copiar. Tente manualmente.'));
-}
-
-// ── Nova lista ────────────────────────────────────────────────────────
-function novaLista() {
-  const tema  = document.getElementById('tema').value;
-  const dif   = document.getElementById('dificuldade').value;
-  const outroTema = document.getElementById('outroTema').value.trim();
-  if (!tema) { showToast('⚠️ Selecione um tema antes de continuar.'); return; }
-
-  document.getElementById('loading').style.display = 'block';
-  document.getElementById('resultSection').style.display = 'none';
-
-  setTimeout(() => {
-    const qtd = questoesGeradas.length || 5;
-    questoesGeradas = [];
-    for (let i = 0; i < qtd; i++) {
-      questoesGeradas.push(gerarQuestao(tema, dif, outroTema));
-    }
-    renderQuestoes(tema, outroTema);
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('resultSection').style.display = 'block';
-    document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
-    showToast('🔄 Nova lista gerada!');
-  }, 500);
-}
-
-// ── Toast ─────────────────────────────────────────────────────────────
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
 </script>
+
 </body>
 </html>
