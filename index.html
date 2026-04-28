@@ -861,12 +861,16 @@ function renderQuestoes(tema, outroTema) {
     </div>
   `).join('');
 
-  // Gabarito
+  // 🔥 GABARITO + RESOLUÇÃO
   const gabDiv = document.getElementById('gabaritoConteudo');
   gabDiv.innerHTML = questoesGeradas.map((q, i) =>
-    `<div class="gab-linha">
-       <span class="gab-q">Questão ${i+1}</span>
-       <span class="gab-r">Resposta: ${q.gabarito.toUpperCase()}</span>
+    `<div style="margin-bottom:15px;">
+       <div><strong>Questão ${i+1}</strong></div>
+       <div><strong>Resposta:</strong> ${q.gabarito.toUpperCase()}</div>
+       <div style="margin-top:5px;">
+         <strong>Resolução:</strong><br>
+         ${q.resolucao || '—'}
+       </div>
      </div>`
   ).join('');
 
